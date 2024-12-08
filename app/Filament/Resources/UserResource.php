@@ -26,9 +26,9 @@ use Illuminate\Support\Facades\Auth;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $label = 'Pengguna';
     protected static ?string $navigationGroup = 'Kelola Pengguna';
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
     protected static ?string $activeNavigationIcon = 'heroicon-s-user-group';
     protected static ?int $navigationSort = 20;
     public static function getNavigationBadge(): ?string

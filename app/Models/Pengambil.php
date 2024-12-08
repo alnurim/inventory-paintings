@@ -23,7 +23,7 @@ class Pengambil extends Model
 
     public function peminjaman(): BelongsTo
     {
-        return $this->belongsTo(peminjaman::class, 'peminjaman_id', 'id');
+        return $this->belongsTo(PeminjamanBarang::class, 'peminjaman_id', 'id');
     }
 
     public function barangKeluar(): HasMany

@@ -25,9 +25,9 @@ use Illuminate\Support\Facades\Auth;
 class RoleResource extends Resource
 {
     protected static ?string $model = Role::class;
+    protected static ?string $navigationIcon = 'heroicon-o-identification';
     protected static ?string $label = 'Level Pengguna';
     protected static ?string $navigationGroup = 'Kelola Pengguna';
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
     protected static ?string $activeNavigationIcon = 'heroicon-s-identification';
     protected static ?int $navigationSort = 19;
     public static function getNavigationBadge(): ?string
