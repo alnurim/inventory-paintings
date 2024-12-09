@@ -26,6 +26,6 @@ class TipeLokasi extends Model
 
     public function peminjaman(): HasMany
     {
-        return $this->hasMany(peminjaman::class);
+        return $this->hasMany(PeminjamanBarang::class);
     }
 }

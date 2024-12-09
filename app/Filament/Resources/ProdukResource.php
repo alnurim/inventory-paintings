@@ -45,6 +45,7 @@ class ProdukResource extends Resource
             ->schema([
                 TextInput::make('nama')
                     ->label('Nama Produk Material')
+                    ->placeholder('Masukkan Nama Produk Material')
                     ->minLength(3)
                     ->maxLength(45)
                     ->inlineLabel()

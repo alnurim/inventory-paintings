@@ -5,12 +5,28 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PeminjamanBarangResource\Pages;
 use App\Filament\Resources\PeminjamanBarangResource\RelationManagers;
 use App\Models\PeminjamanBarang;
+use Closure;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PeminjamanBarangResource extends Resource
@@ -35,24 +51,74 @@ class PeminjamanBarangResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('barang_id')
-                    ->relationship('barang', 'id')
-                    ->required(),
-                Forms\Components\Select::make('tipe_lokasi_id')
-                    ->relationship('tipeLokasi', 'id')
-                    ->required(),
-                Forms\Components\DatePicker::make('tanggal_peminjaman')
-                    ->required(),
-                Forms\Components\DatePicker::make('tanggal_pengembalian'),
-                Forms\Components\TextInput::make('kuantitas')
+                Select::make('barang_id')
+                    ->label('Material')
+                    ->placeholder('Pilih Material')
+                    ->relationship('barang', 'nama')
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->columnSpanFull()
                     ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('nama')
-                    ->required()
-                    ->maxLength(45),
-                Forms\Components\Toggle::make('status')
+                    ->getOptionLabelFromRecordUsing(function (Model $record) {
+                        $produkNama = $record->produk->nama ?? 'Produk Tidak Ada';
+                        $nama = $record->nama ?? 'Tidak Ada Nama';
+                        $jenisNama = $record->jenis->nama ?? 'Tidak Ada Jenis';
+                        $warna = $record->warna ?? 'Tidak Ada Warna';
+                        $kodeWarna = $record->kode_warna ?? 'Tidak Ada Kode';
+                        $ukuran = $record->ukuran ?? '-';
+
+                        return "$nama ($jenisNama) - $produkNama, $warna ($kodeWarna), $ukuran Liter";
+                    }),
+
+                TextInput::make('nama')
+                    ->label('Nama Penanggung Jawab')
+                    ->placeholder('Masukkan Nama Penanggung Jawab')
+                    ->minLength(3)
+                    ->maxLength(45)
                     ->required(),
-                Forms\Components\Textarea::make('keterangan')
+
+                Select::make('tipe_lokasi_id')
+                    ->label('Area')
+                    ->relationship('tipeLokasi', 'nama')
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->getOptionLabelFromRecordUsing(function (Model $record) {
+                        $lokasiNama = $record->lokasi->pluck('nama')->join(', ') ?: 'Tidak Ada Lokasi';
+                        $tipeLokasiNama = $record->nama;
+                        return "{$lokasiNama} - {$tipeLokasiNama}";
+                    })
+                    ->required(),
+
+                DatePicker::make('tanggal_peminjaman')
+                    ->label('Tanggal Peminjaman')
+                    ->placeholder('Pilih Tanggal Peminjaman')
+                    ->native(false)
+                    ->required(),
+
+                TextInput::make('kuantitas')
+                    ->label('Kuantitas / Banyak')
+                    ->placeholder('Masukkan Kuantitas')
+                    ->minValue(1)
+                    ->suffix(' Kaleng')
+                    ->hidden(fn($record) => $record?->status)
+                    ->dehydratedWhenHidden()
+                    ->numeric()
+                    ->required(),
+
+                DatePicker::make('tanggal_pengembalian')
+                    ->label('Tanggal Pengembalian')
+                    ->placeholder('Pilih Tanggal Pengembalian')
+                    ->native(false)
+                    ->default(fn($record) => $record && $record->status ? now() : null)
+                    ->visible(fn($record) => $record?->status),
+
+                Textarea::make('keterangan')
+                    ->label('Keterangan')
+                    ->placeholder('Masukkan Keterangan')
+                    ->rows(3)
+                    ->autosize()
                     ->columnSpanFull(),
             ]);
     }
@@ -61,45 +127,142 @@ class PeminjamanBarangResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('barang.id')
-                    ->numeric()
+                TextColumn::make('tanggal_peminjaman')
+                    ->label('Tanggal')
+                    ->getStateUsing(function ($record) {
+                        // Format Tanggal Peminjaman
+                        $tanggalPeminjaman = \Carbon\Carbon::parse($record->tanggal_peminjaman)->translatedFormat('M d, Y');
+
+                        // Format Tanggal Pengembalian atau tampilkan "Belum Dikembalikan" jika null
+                        $tanggalPengembalian = $record->tanggal_pengembalian
+                            ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
+                            : '<span class="text-gray-500 italic">Belum Dikembalikan</span>';
+
+                        // Gabungkan keduanya dengan HTML yang lebih menarik
+                        return "
+                            <div class='text-sm'>
+                                <div class='font-normal text-medium text-gray-800'>Peminjaman</div>
+                                <div class='text-gray-500 mb-2'>
+                                    <span>&#8226; $tanggalPeminjaman</span>
+                                </div>
+
+                                <div class='font-normal text-medium text-gray-800'>Pengembalian</div>
+                                <div class='text-gray-500'>
+                                    <span>&#8226; $tanggalPengembalian</span>
+                                </div>
+                            </div>
+                        ";
+                    })
+                    ->html()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('tipeLokasi.id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tanggal_peminjaman')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('tanggal_pengembalian')
-                    ->date()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('kuantitas')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('nama')
+
+                TextColumn::make('barang.nama')
+                    ->label('Material')
+                    ->formatStateUsing(function ($record) {
+                        $nama = '<span class="text-sm font-medium text-gray-800">' . e($record->barang->nama) . '</span>';
+                        $produkNama = $record->barang->produk->nama ?? 'Tidak Ada Produk';
+                        $jenisNama = $record->barang->jenis->nama ?? 'Tidak Ada Jenis';
+                        $produkJenis = '<span class="text-sm text-gray-500">' . e($produkNama) . ' &#8226; ' . e($jenisNama) . '</span>';
+                        return '<div class="flex flex-col">'
+                            . $nama
+                            . '<div class="mt-1">' . $produkJenis . '</div>'
+                            . '</div>';
+                    })
+                    ->html()
+                    ->sortable()
                     ->searchable(),
-                Tables\Columns\IconColumn::make('status')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+
+                TextColumn::make('tanggal_pengembalian')
+                    ->label('Tanggal Pengembalian')
+                    ->getStateUsing(function ($record) {
+                        return $record->tanggal_pengembalian
+                            ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
+                            : '<div class="text-gray-300 italic">Belum Dikembalikan</div>';
+                    })
+                    ->html()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
+
+                TextColumn::make('barang.warna')
+                    ->label('Warna')
+                    ->formatStateUsing(function ($record) {
+                        if (!$record || !$record->barang->warna) {
+                            return '<div class="text-gray-500 italic">Tidak ada data</div>';
+                        }
+
+                        $colors = config('colors');
+                        $warna = $record->barang->warna;
+                        $kodeWarna = $record->barang->kode_warna ?? 'Tidak Ada Kode';
+                        $colorHex = $colors[$warna] ?? '#cccccc';
+                        $colorStyle = 'background-color:' . $colorHex . '; margin-right: 0.625rem;';
+
+                        return '<div class="flex items-center space-x-2">'
+                            . '<div class="w-5 h-5 rounded-lg border border-black dark:border-white" style="' . $colorStyle . '"></div>'
+                            . '<span class="text-sm font-medium text-gray-800 dark:text-gray-200">' . e($warna) . ' / ' . e($kodeWarna) . '</span>'
+                            . '</div>';
+                    })
+                    ->html()
+                    ->searchable(),
+
+                TextColumn::make('nama')
+                    ->label('Penanggung Jawab')
+                    ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('tipeLokasi.nama')
+                    ->label('Lokasi')
+                    ->sortable()
+                    ->formatStateUsing(function (Model $record) {
+                        $lokasi = $record->tipeLokasi->lokasi->first();
+                        $lokasiNama = $lokasi->nama ?? 'Tidak Ada Lokasi';
+                        $tipeLokasiNama = $record->tipeLokasi->nama ?? 'Tidak Ada Tipe Lokasi';
+
+                        return "{$lokasiNama} - {$tipeLokasiNama}";
+                    }),
+
+                TextColumn::make('barang.ukuran')
+                    ->label('Ukuran / Size')
+                    ->suffix(' Liter')
+                    ->numeric(),
+
+                TextColumn::make('kuantitas')
+                    ->label('Kuantitas / Banyak')
+                    ->suffix(' Kaleng')
+                    ->numeric()
+                    ->sortable(),
+
+                ToggleColumn::make('status')
+                    ->label('Sudah Dikembalikan ?')
+                    ->offColor('danger')
+                    ->onColor('success')
+                    ->afterStateUpdated(function ($record, $state) {
+                        if ($state) {
+                            // Jika status diaktifkan, set tanggal_pengembalian ke tanggal sekarang
+                            $record->update([
+                                'tanggal_pengembalian' => now(),
+                            ]);
+                        } else {
+                            // Jika status dimatikan, hapus tanggal_pengembalian
+                            $record->update([
+                                'tanggal_pengembalian' => null,
+                            ]);
+                        }
+                    }),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])->icon('heroicon-o-ellipsis-horizontal-circle')
+
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }
