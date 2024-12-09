@@ -146,9 +146,11 @@ class BarangResource extends Resource
                         if (!$record || !$record->warna) {
                             return '<div class="text-gray-500 italic">Tidak ada data</div>';
                         }
+                        $colors = config('colors');
                         $warna = $record->warna;
                         $kodeWarna = $record->kode_warna ?? 'Tidak Ada Kode';
-                        $colorStyle = 'background-color:' . strtolower($warna) . '; margin-right: 0.625rem;';
+                        $colorHex = $colors[$warna] ?? '#cccccc';
+                        $colorStyle = 'background-color:' . $colorHex . '; margin-right: 0.625rem;';
 
                         return '<div class="flex items-center space-x-2">'
                             . '<div class="w-5 h-5 rounded-lg border border-black dark:border-white" style="' . $colorStyle . '"></div>'

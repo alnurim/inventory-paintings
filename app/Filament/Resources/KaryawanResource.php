@@ -6,9 +6,17 @@ use App\Filament\Resources\KaryawanResource\Pages;
 use App\Filament\Resources\KaryawanResource\RelationManagers;
 use App\Models\Karyawan;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -35,16 +43,27 @@ class KaryawanResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('nama')
-                    ->required()
-                    ->maxLength(45),
-                Forms\Components\TextInput::make('npk')
-                    ->required()
-                    ->maxLength(20),
-                Forms\Components\TextInput::make('jabatan')
-                    ->required()
+                TextInput::make('npk')
+                    ->label('Nomor Pekerja Kontraktor (NPK)')
+                    ->placeholder('Masukkan Nomor Pekerja')
+                    ->minLength(3)
                     ->maxLength(20)
-                    ->default('Kontraktor'),
+                    ->columnSpanFull()
+                    ->required(),
+
+                TextInput::make('nama')
+                    ->label('Nama Karyawan')
+                    ->placeholder('Masukkan Nama Karyawan')
+                    ->minLength(3)
+                    ->maxLength(45)
+                    ->required(),
+
+                TextInput::make('jabatan')
+                    ->label('Jabatan')
+                    ->placeholder('Masukkan Jabatan Karyawan')
+                    ->maxLength(20)
+                    ->default('Kontraktor')
+                    ->required(),
             ]);
     }
 
@@ -52,32 +71,31 @@ class KaryawanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nama')
+                TextColumn::make('npk')
+                    ->label('Nomor Pekerja Kontraktor (NPK)')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('npk')
+
+                TextColumn::make('nama')
+                    ->label('Nama Karyawan')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('jabatan')
+
+                TextColumn::make('jabatan')
+                    ->label('Jabatan')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])->icon('heroicon-o-ellipsis-horizontal-circle')
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

@@ -45,6 +45,7 @@ class JenisResource extends Resource
             ->schema([
                 TextInput::make('nama')
                     ->label('Nama Jenis Material')
+                    ->placeholder('Masukkan Nama Jenis Material')
                     ->minLength(3)
                     ->maxLength(45)
                     ->inlineLabel()

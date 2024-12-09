@@ -2,10 +2,23 @@
 
 namespace App\Providers;
 
+use App\Filament\Resources\BarangKeluarResource;
+use App\Filament\Resources\BarangMasukResource;
+use App\Filament\Resources\BarangResource;
+use App\Filament\Resources\JenisResource;
+use App\Filament\Resources\KaryawanResource;
+use App\Filament\Resources\LokasiResource;
+use App\Filament\Resources\PemakaianLapanganResource;
+use App\Filament\Resources\PeminjamanBarangResource;
+use App\Filament\Resources\PengambilResource;
+use App\Filament\Resources\ProdukResource;
 use App\Filament\Resources\RoleResource;
+use App\Filament\Resources\TipeLokasiResource;
 use App\Filament\Resources\UserResource;
 use App\Models\BarangMasuk;
+use App\Models\PeminjamanBarang;
 use App\Observers\BarangMasukObserver;
+use App\Observers\PeminjamanBarangObserver;
 use Filament\Facades\Filament;
 use Filament\Pages\Dashboard;
 use Filament\Support\Facades\FilamentView;
@@ -55,6 +68,17 @@ class AppServiceProvider extends ServiceProvider
                 Dashboard::class,
                 UserResource::class,
                 RoleResource::class,
+                BarangResource::class,
+                BarangMasukResource::class,
+                BarangKeluarResource::class,
+                JenisResource::class,
+                KaryawanResource::class,
+                LokasiResource::class,
+                PemakaianLapanganResource::class,
+                PeminjamanBarangResource::class,
+                PengambilResource::class,
+                ProdukResource::class,
+                TipeLokasiResource::class,
             ]
         );
 
@@ -65,5 +89,6 @@ class AppServiceProvider extends ServiceProvider
         );
 
         BarangMasuk::observe(BarangMasukObserver::class);
+        PeminjamanBarang::observe(PeminjamanBarangObserver::class);
     }
 }
