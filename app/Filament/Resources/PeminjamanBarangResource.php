@@ -102,7 +102,7 @@ class PeminjamanBarangResource extends Resource
                     ->placeholder('Masukkan Kuantitas')
                     ->minValue(1)
                     ->suffix(' Kaleng')
-                    ->hidden(fn($record) => $record->status)
+                    ->hidden(fn($record) => $record?->status)
                     ->dehydratedWhenHidden()
                     ->numeric()
                     ->required(),
@@ -111,8 +111,8 @@ class PeminjamanBarangResource extends Resource
                     ->label('Tanggal Pengembalian')
                     ->placeholder('Pilih Tanggal Pengembalian')
                     ->native(false)
-                    ->default(fn($record) => $record('status') ? now() : null)
-                    ->visible(fn($record) => $record->status),
+                    ->default(fn($record) => $record && $record->status ? now() : null)
+                    ->visible(fn($record) => $record?->status),
 
                 Textarea::make('keterangan')
                     ->label('Keterangan')
@@ -128,8 +128,32 @@ class PeminjamanBarangResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('tanggal_peminjaman')
-                    ->label('Tanggal Peminjaman')
-                    ->date()
+                    ->label('Tanggal')
+                    ->getStateUsing(function ($record) {
+                        // Format Tanggal Peminjaman
+                        $tanggalPeminjaman = \Carbon\Carbon::parse($record->tanggal_peminjaman)->translatedFormat('M d, Y');
+
+                        // Format Tanggal Pengembalian atau tampilkan "Belum Dikembalikan" jika null
+                        $tanggalPengembalian = $record->tanggal_pengembalian
+                            ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
+                            : '<span class="text-gray-500 italic">Belum Dikembalikan</span>';
+
+                        // Gabungkan keduanya dengan HTML yang lebih menarik
+                        return "
+                            <div class='text-sm'>
+                                <div class='font-normal text-medium text-gray-800'>Peminjaman</div>
+                                <div class='text-gray-500 mb-2'>
+                                    <span>&#8226; $tanggalPeminjaman</span>
+                                </div>
+
+                                <div class='font-normal text-medium text-gray-800'>Pengembalian</div>
+                                <div class='text-gray-500'>
+                                    <span>&#8226; $tanggalPengembalian</span>
+                                </div>
+                            </div>
+                        ";
+                    })
+                    ->html()
                     ->sortable(),
 
                 TextColumn::make('barang.nama')
@@ -147,6 +171,17 @@ class PeminjamanBarangResource extends Resource
                     ->html()
                     ->sortable()
                     ->searchable(),
+
+                TextColumn::make('tanggal_pengembalian')
+                    ->label('Tanggal Pengembalian')
+                    ->getStateUsing(function ($record) {
+                        return $record->tanggal_pengembalian
+                            ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
+                            : '<div class="text-gray-300 italic">Belum Dikembalikan</div>';
+                    })
+                    ->html()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('barang.warna')
                     ->label('Warna')
@@ -213,16 +248,6 @@ class PeminjamanBarangResource extends Resource
                             ]);
                         }
                     }),
-
-                TextColumn::make('tanggal_pengembalian')
-                    ->label('Tanggal Pengembalian')
-                    ->getStateUsing(function ($record) {
-                        return $record->tanggal_pengembalian
-                            ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
-                            : '<div class="text-gray-300 italic">Belum Dikembalikan</div>';
-                    })
-                    ->html()
-                    ->sortable(),
             ])
             ->filters([
                 //
