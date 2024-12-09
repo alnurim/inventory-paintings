@@ -17,6 +17,6 @@ class Lokasi extends Model
 
     public function tipeLokasi(): BelongsTo
     {
-        return $this->belongsTo(Lokasi::class, 'tipe_lokasi_id', 'id');
+        return $this->belongsTo(TipeLokasi::class, 'tipe_lokasi_id', 'id');
     }
 }
