@@ -93,20 +93,111 @@ class PengambilResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('karyawan.id')
+                TextColumn::make('karyawan.nama')
+                    ->formatStateUsing(function ($record) {
+                        $karyawanNama = $record->karyawan->nama ?? 'Tidak Ada Nama';
+                        $karyawanNpk = $record->karyawan->npk ?? 'Tidak Ada NPK';
+                        return "<div class='flex flex-col'>
+                                    <span class='text-sm font-medium text-gray-800'>
+                                        $karyawanNama
+                                    </span>
+                                    <div class='mt-1'>
+                                        <span class='text-sm text-gray-500'>
+                                            $karyawanNpk
+                                        </span>
+                                    </div>
+                                </div>";
+                    })
+                    ->html()
+                    ->sortable(),
+
+                TextColumn::make('peminjaman.barang.nama')
+                    ->label('Material')
+                    ->formatStateUsing(function ($record) {
+                        $nama = '<span class="text-sm font-medium text-gray-800">' . e($record->peminjaman->barang->nama) . '</span>';
+                        $produkNama = $record->peminjaman->barang->produk->nama ?? 'Tidak Ada Produk';
+                        $jenisNama = $record->peminjaman->barang->jenis->nama ?? 'Tidak Ada Jenis';
+                        $produkJenis = '<span class="text-sm text-gray-500">' . e($produkNama) . ' &#8226; ' . e($jenisNama) . '</span>';
+                        return '<div class="flex flex-col">'
+                            . $nama
+                            . '<div class="mt-1">' . $produkJenis . '</div>'
+                            . '</div>';
+                    })
+                    ->html()
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('peminjaman.barang.warna')
+                    ->label('Warna')
+                    ->formatStateUsing(function ($record) {
+                        if (!$record || !$record->peminjaman->barang->warna) {
+                            return '<div class="text-gray-500 italic">Tidak ada data</div>';
+                        }
+
+                        $colors = config('colors');
+                        $warna = $record->peminjaman->barang->warna;
+                        $kodeWarna = $record->peminjaman->barang->kode_warna ?? 'Tidak Ada Kode';
+                        $colorHex = $colors[$warna] ?? '#cccccc';
+                        $colorStyle = 'background-color:' . $colorHex . '; margin-right: 0.625rem;';
+
+                        return '<div class="flex items-center space-x-2">'
+                            . '<div class="w-5 h-5 rounded-lg border border-black dark:border-white" style="' . $colorStyle . '"></div>'
+                            . '<span class="text-sm font-medium text-gray-800 dark:text-gray-200">' . e($warna) . ' / ' . e($kodeWarna) . '</span>'
+                            . '</div>';
+                    })
+                    ->html()
+                    ->searchable(),
+
+                TextColumn::make('peminjaman.tipeLokasi.nama')
+                    ->label('Lokasi')
+                    ->sortable()
+                    ->formatStateUsing(function (Model $record) {
+                        $lokasi = $record->peminjaman->tipeLokasi->lokasi->first();
+                        $lokasiNama = $lokasi->nama ?? 'Tidak Ada Lokasi';
+                        $tipeLokasiNama = $record->peminjaman->tipeLokasi->nama ?? 'Tidak Ada Tipe Lokasi';
+
+                        return "{$lokasiNama} - {$tipeLokasiNama}";
+                    }),
+
+                TextColumn::make('peminjaman.barang.ukuran')
+                    ->label('Ukuran / Size')
+                    ->suffix(' Liter')
+                    ->numeric(),
+
+                TextColumn::make('peminjaman.kuantitas')
+                    ->label('Kuantitas / Banyak')
+                    ->suffix(' Kaleng')
                     ->numeric()
                     ->sortable(),
-                TextColumn::make('peminjaman.id')
-                    ->numeric()
+
+                TextColumn::make('peminjaman.tanggal_peminjaman')
+                    ->label('Tanggal')
+                    ->getStateUsing(function ($record) {
+                        // Format Tanggal Peminjaman
+                        $tanggalPeminjaman = \Carbon\Carbon::parse($record->tanggal_peminjaman)->translatedFormat('M d, Y');
+
+                        // Format Tanggal Pengembalian atau tampilkan "Belum Dikembalikan" jika null
+                        $tanggalPengembalian = $record->tanggal_pengembalian
+                            ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
+                            : '<span class="text-gray-500 italic">Belum Dikembalikan</span>';
+
+                        // Gabungkan keduanya dengan HTML yang lebih menarik
+                        return "
+                            <div class='text-sm'>
+                                <div class='font-normal text-medium text-gray-800'>Peminjaman</div>
+                                <div class='text-gray-500 mb-2'>
+                                    <span>&#8226; $tanggalPeminjaman</span>
+                                </div>
+
+                                <div class='font-normal text-medium text-gray-800'>Pengembalian</div>
+                                <div class='text-gray-500'>
+                                    <span>&#8226; $tanggalPengembalian</span>
+                                </div>
+                            </div>
+                        ";
+                    })
+                    ->html()
                     ->sortable(),
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
@@ -116,7 +207,7 @@ class PengambilResource extends Resource
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
-                ])
+                ])->icon('heroicon-o-ellipsis-horizontal-circle')
             ])
             ->bulkActions([
                 BulkActionGroup::make([
