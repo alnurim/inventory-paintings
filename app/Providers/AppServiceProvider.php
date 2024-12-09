@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Filament\Resources\RoleResource;
 use App\Filament\Resources\UserResource;
+use App\Models\BarangMasuk;
+use App\Observers\BarangMasukObserver;
 use Filament\Facades\Filament;
 use Filament\Pages\Dashboard;
 use Filament\Support\Facades\FilamentView;
@@ -54,7 +56,6 @@ class AppServiceProvider extends ServiceProvider
                 UserResource::class,
                 RoleResource::class,
             ]
-
         );
 
         // Vite Hot Reloading
@@ -62,5 +63,7 @@ class AppServiceProvider extends ServiceProvider
             PanelsRenderHook::BODY_END,
             fn(): string => Blade::render("@vite('resources/js/app.js')")
         );
+
+        BarangMasuk::observe(BarangMasukObserver::class);
     }
 }

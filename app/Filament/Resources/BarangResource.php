@@ -127,6 +127,7 @@ class BarangResource extends Resource
                             . '</div>';
                     })
                     ->html()
+                    ->sortable()
                     ->searchable(),
 
                 TextColumn::make('produk.nama')
@@ -135,7 +136,7 @@ class BarangResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('jenis.nama')
-                    ->label('Jenis')
+                    ->label('Jenis Material')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
@@ -145,7 +146,6 @@ class BarangResource extends Resource
                         if (!$record || !$record->warna) {
                             return '<div class="text-gray-500 italic">Tidak ada data</div>';
                         }
-
                         $warna = $record->warna;
                         $kodeWarna = $record->kode_warna ?? 'Tidak Ada Kode';
                         $colorStyle = 'background-color:' . strtolower($warna) . '; margin-right: 0.625rem;';
@@ -183,7 +183,7 @@ class BarangResource extends Resource
                     ViewAction::make(),
                     EditAction::make(),
                     DeleteAction::make(),
-                ])
+                ])->icon('heroicon-o-ellipsis-horizontal-circle')
             ])
             ->bulkActions([
                 BulkActionGroup::make([
