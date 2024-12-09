@@ -87,12 +87,12 @@ class BarangMasukResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('tanggal')
+                TextColumn::make('tanggal')
                     ->label('Tanggal')
                     ->date()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('barang.nama')
+                TextColumn::make('barang.nama')
                     ->label('Material')
                     ->formatStateUsing(function ($record) {
                         $nama = '<span class="text-sm font-medium text-gray-800">' . e($record->barang->nama) . '</span>';
