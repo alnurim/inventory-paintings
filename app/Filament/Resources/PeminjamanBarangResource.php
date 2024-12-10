@@ -130,25 +130,22 @@ class PeminjamanBarangResource extends Resource
                 TextColumn::make('tanggal_peminjaman')
                     ->label('Tanggal')
                     ->getStateUsing(function ($record) {
-                        // Format Tanggal Peminjaman
                         $tanggalPeminjaman = \Carbon\Carbon::parse($record->tanggal_peminjaman)->translatedFormat('M d, Y');
 
-                        // Format Tanggal Pengembalian atau tampilkan "Belum Dikembalikan" jika null
                         $tanggalPengembalian = $record->tanggal_pengembalian
                             ? \Carbon\Carbon::parse($record->tanggal_pengembalian)->translatedFormat('M d, Y')
-                            : '<span class="text-gray-500 italic">Belum Dikembalikan</span>';
+                            : '<span class="text-gray-800 text-sm italic">Belum Dikembalikan</span>';
 
-                        // Gabungkan keduanya dengan HTML yang lebih menarik
                         return "
                             <div class='text-sm'>
-                                <div class='font-normal text-medium text-gray-800'>Peminjaman</div>
-                                <div class='text-gray-500 mb-2'>
-                                    <span>&#8226; $tanggalPeminjaman</span>
+                                <div class='font-normal text-medium text-gray-500'>&#8226; Peminjaman</div>
+                                <div class='text-gray-800 mb-2'>
+                                    <span>$tanggalPeminjaman</span>
                                 </div>
 
-                                <div class='font-normal text-medium text-gray-800'>Pengembalian</div>
-                                <div class='text-gray-500'>
-                                    <span>&#8226; $tanggalPengembalian</span>
+                                <div class='font-normal text-medium text-gray-500'>&#8226; Pengembalian</div>
+                                <div class='text-gray-800'>
+                                    <span>$tanggalPengembalian</span>
                                 </div>
                             </div>
                         ";
@@ -237,12 +234,10 @@ class PeminjamanBarangResource extends Resource
                     ->onColor('success')
                     ->afterStateUpdated(function ($record, $state) {
                         if ($state) {
-                            // Jika status diaktifkan, set tanggal_pengembalian ke tanggal sekarang
                             $record->update([
                                 'tanggal_pengembalian' => now(),
                             ]);
                         } else {
-                            // Jika status dimatikan, hapus tanggal_pengembalian
                             $record->update([
                                 'tanggal_pengembalian' => null,
                             ]);

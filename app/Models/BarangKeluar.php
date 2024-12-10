@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BarangKeluar extends Model
 {
@@ -12,7 +13,7 @@ class BarangKeluar extends Model
 
     protected $fillable = [
         'barang_id',
-        'pengambil_id',
+        'karyawan_id',
         'tipe_lokasi_id',
         'tanggal',
         'kuantitas',
@@ -23,18 +24,18 @@ class BarangKeluar extends Model
         return $this->belongsTo(Barang::class, 'barang_id', 'id');
     }
 
-    public function pengambil(): BelongsTo
+    public function karyawan(): BelongsTo
     {
-        return $this->belongsTo(Pengambil::class, 'pengambil_id', 'id');
+        return $this->belongsTo(Karyawan::class, 'karyawan_id', 'id');
     }
 
     public function tipeLokasi(): BelongsTo
     {
-        return $this->belongsTo(Pengambil::class, 'tipe_lokasi_id', 'id');
+        return $this->belongsTo(TipeLokasi::class, 'tipe_lokasi_id', 'id');
     }
 
-    public function pemakaianLapangan(): BelongsTo
+    public function pemakaianLapangan(): HasMany
     {
-        return $this->belongsTo(Pengambil::class);
+        return $this->hasMany(PemakaianLapangan::class);
     }
 }

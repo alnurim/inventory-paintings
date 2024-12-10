@@ -56,7 +56,7 @@ class PengambilResource extends Resource
                     ->getOptionLabelFromRecordUsing(function (Model $record) {
                         $npk = $record->npk;
                         $nama = $record->nama;
-                        return "$npk | $record->nama";
+                        return "$npk - $nama";
                     })
                     ->required(),
 
