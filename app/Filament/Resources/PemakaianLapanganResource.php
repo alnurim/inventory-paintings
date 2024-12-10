@@ -6,9 +6,17 @@ use App\Filament\Resources\PemakaianLapanganResource\Pages;
 use App\Filament\Resources\PemakaianLapanganResource\RelationManagers;
 use App\Models\PemakaianLapangan;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -35,13 +43,14 @@ class PemakaianLapanganResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('barang_keluar_id')
+                Select::make('barang_keluar_id')
+                    ->label('Material')
                     ->relationship('barangKeluar', 'id')
                     ->required(),
-                Forms\Components\Select::make('karyawan_id')
+                Select::make('karyawan_id')
                     ->relationship('karyawan', 'id')
                     ->required(),
-                Forms\Components\TextInput::make('kuantitas')
+                TextInput::make('kuantitas')
                     ->required()
                     ->numeric(),
             ]);
@@ -51,20 +60,20 @@ class PemakaianLapanganResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('barangKeluar.id')
+                TextColumn::make('barangKeluar.id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('karyawan.id')
+                TextColumn::make('karyawan.id')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('kuantitas')
+                TextColumn::make('kuantitas')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -73,13 +82,13 @@ class PemakaianLapanganResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ]);
     }

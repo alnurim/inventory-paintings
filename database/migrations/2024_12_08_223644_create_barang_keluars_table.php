@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('barang_keluars', function (Blueprint $table) {
             $table->id();
             $table->foreignId('barang_id')->constrained('barangs')->cascadeOnDelete();
-            $table->foreignId('pengambil_id')->constrained('pengambils')->cascadeOnDelete();
+            $table->foreignId('karyawan_id')->constrained('karyawans')->cascadeOnDelete();
             $table->foreignId('tipe_lokasi_id')->constrained('tipe_lokasis')->cascadeOnDelete();
             $table->date('tanggal');
             $table->unsignedMediumInteger('kuantitas');
