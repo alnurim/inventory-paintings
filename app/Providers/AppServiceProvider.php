@@ -17,9 +17,11 @@ use App\Filament\Resources\TipeLokasiResource;
 use App\Filament\Resources\UserResource;
 use App\Models\BarangKeluar;
 use App\Models\BarangMasuk;
+use App\Models\PemakaianLapangan;
 use App\Models\PeminjamanBarang;
 use App\Observers\BarangKeluarObserver;
 use App\Observers\BarangMasukObserver;
+use App\Observers\PemakaianLapanganObserver;
 use App\Observers\PeminjamanBarangObserver;
 use Filament\Facades\Filament;
 use Filament\Pages\Dashboard;
@@ -93,5 +95,6 @@ class AppServiceProvider extends ServiceProvider
         BarangMasuk::observe(BarangMasukObserver::class);
         PeminjamanBarang::observe(PeminjamanBarangObserver::class);
         BarangKeluar::observe(BarangKeluarObserver::class);
+        PemakaianLapangan::observe(PemakaianLapanganObserver::class);
     }
 }

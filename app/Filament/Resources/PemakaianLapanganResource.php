@@ -19,6 +19,7 @@ use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PemakaianLapanganResource extends Resource
@@ -45,14 +46,49 @@ class PemakaianLapanganResource extends Resource
             ->schema([
                 Select::make('barang_keluar_id')
                     ->label('Material')
+                    ->placeholder('Pilih Material')
                     ->relationship('barangKeluar', 'id')
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->columnSpanFull()
+                    ->searchable(['barang.jenis.nama', 'barang.nama'])
+                    ->getOptionLabelFromRecordUsing(function (Model $record) {
+                        $produkNama = $record->barang->produk->nama ?? 'Produk Tidak Ada';
+                        $nama = $record->barang->nama ?? 'Tidak Ada Nama';
+                        $jenisNama = $record->barang->jenis->nama ?? 'Tidak Ada Jenis';
+                        $warna = $record->barang->warna ?? 'Tidak Ada Warna';
+                        $kodeWarna = $record->barang->kode_warna ?? 'Tidak Ada Kode';
+                        $ukuran = $record->barang->ukuran ?? '-';
+                        $lokasi = $record->tipeLokasi->lokasi->first();
+                        $lokasiNama = $lokasi->nama ?? 'Tidak Ada Lokasi';
+                        $area = $record->tipeLokasi->nama ?? 'Tidak Ada Area';
+                        $kuantitas = $record->kuantitas ?? '-';
+
+                        return "[$lokasiNama - $area] $nama ($jenisNama) | $produkNama, $warna ($kodeWarna), $ukuran Liter / $kuantitas Kaleng";
+                    })
                     ->required(),
                 Select::make('karyawan_id')
-                    ->relationship('karyawan', 'id')
+                    ->label('Karyawan')
+                    ->placeholder('Pilih Karyawan')
+                    ->relationship('karyawan', 'nama')
+                    ->native(false)
+                    ->preload()
+                    ->searchable(['karyawan.nama', 'karyawan.npk'])
+                    ->getOptionLabelFromRecordUsing(function (Model $record) {
+                        $npk = $record->npk;
+                        $nama = $record->nama;
+                        return "$npk - $nama";
+                    })
                     ->required(),
+
                 TextInput::make('kuantitas')
-                    ->required()
-                    ->numeric(),
+                    ->label('Kuantitas / Banyak')
+                    ->placeholder('Masukkan Kuantitas')
+                    ->minValue(1)
+                    ->suffix(' Kaleng')
+                    ->numeric()
+                    ->required(),
             ]);
     }
 
@@ -63,12 +99,15 @@ class PemakaianLapanganResource extends Resource
                 TextColumn::make('barangKeluar.id')
                     ->numeric()
                     ->sortable(),
+
                 TextColumn::make('karyawan.id')
                     ->numeric()
                     ->sortable(),
+
                 TextColumn::make('kuantitas')
                     ->numeric()
                     ->sortable(),
+
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -183,7 +183,7 @@ class BarangKeluarResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    // Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make(),
                 ])->icon('heroicon-o-ellipsis-horizontal-circle')
             ])

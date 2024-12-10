@@ -13,7 +13,6 @@ class BarangKeluarObserver
     {
         $barang = $barangKeluar->barang;
         if ($barang) {
-            // Kurangi kuantitas barang sesuai dengan kuantitas peminjaman
             $barang->decrement('kuantitas', $barangKeluar->kuantitas);
         }
     }
@@ -27,8 +26,8 @@ class BarangKeluarObserver
         $difference = $barangKeluar->kuantitas - $original;
 
         $barang = $barangKeluar->barang;
-        if ($barang) {
-            $barang->decrement('kuantitas', $difference);
+        if ($barang && $difference !== 0) {
+            return;
         }
     }
 
